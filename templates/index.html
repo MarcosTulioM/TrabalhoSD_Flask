@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Server Flask</title>
+    <style>
+    body { font-family: Arial; margin: 20px; }
+    input, button { margin: 5px; padding: 5px; }
+    .record { border: 1px solid #ccc; padding: 10px; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">Gerenciar Registros</h1>
+
+    <div id="prencher" style="text-align: center;">
+        <input style="width: 32%;"id="name" placeholder="Nome" ><br>
+        <input style="width: 32%;" id="email" placeholder="Email"><br>
+    </div>
+
+    <div id="bts" style="text-align: center; position: relative;">
+        <button onclick="getRecord()">Buscar Registro</button>
+        <button onclick="createRecord()">Adicionar Registro</button>
+        <button onclick="updateRecord()">Atualizar Registro</button>
+        <button onclick="deleteRecord()">Apagar Registro</button> 
+    </div>
+
+<script>
+    const API = "http://127.0.0.1:5000";
+
+    // Buscar registro
+    async function getRecord() {
+        const name = document.getElementById('name').value;
+
+        const res = await fetch(API + "/records?name=" + name);
+        const data = await res.json();
+
+        alert("Resultado: " + JSON.stringify(data, null, 2));
+    }
+
+    // Criar novo registro
+    async function createRecord() {
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+
+        const res = await fetch(API + "/records", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email })
+        });
+
+        const data = await res.json();
+        alert("Registro adicionado: " + JSON.stringify(data, null, 2));
+    }
+
+    // Atualizar registro
+    async function updateRecord() {
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+
+        const res = await fetch(API + "/records", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email })
+        });
+
+        const data = await res.json();
+        alert("Registro atualizado: " + JSON.stringify(data, null, 2));
+    }
+
+    // Deletar registro
+    async function deleteRecord() {
+        const name = document.getElementById('name').value;
+
+        const res = await fetch(API + "/records", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name })
+        });
+
+        const data = await res.json();
+        alert("Registro excluído: " + JSON.stringify(data));
+    }
+</script>
+
+</body>
+</html>
