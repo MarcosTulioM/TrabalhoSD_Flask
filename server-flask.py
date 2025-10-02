@@ -22,14 +22,11 @@ def home_page():
 #Busca registros por nome
 @app.route('/records', methods=['GET'])
 def query_records():
-    name = request.args.get('name')
-    with open('data.json', 'r') as f:
-        data = f.read()
-        records = json.loads(data)
-        for record in records:
-            if record:
-                return jsonify(record[0])
-        return jsonify({'error': 'data not found'})
+    name = request.args.get("name")
+    result = db.search(User.name == name)
+    if result:
+        return jsonify(result)
+    return jsonify({"error": "not found"}), 404
 
 
 #Criar novo registro
