@@ -25,6 +25,9 @@
         <button onclick="deleteRecord()">Apagar Registro</button> 
     </div>
 
+    <h2 style="text-align: center;">Lista de Registros</h2>
+    <div id="records" style="margin-top:20px;"></div>
+
 <script>
     const API = "http://127.0.0.1:5000";
 
@@ -81,6 +84,34 @@
         const data = await res.json();
         alert("Registro excluído: " + JSON.stringify(data));
     }
+
+    //Listar todos os registros
+    async function listRecords() {
+        const res = await fetch(API + "/records/all");
+        const data = await res.json();
+
+        const container = document.getElementById("records");
+        container.innerHTML = "";
+
+        if (data.length === 0) {
+            container.innerHTML = "<p>Nenhum registro encontrado.</p>";
+            return;
+        }
+
+        data.forEach(r => {
+            const div = document.createElement("div");
+            div.className = "record";
+            div.innerHTML = `<b>${r.name}</b> - ${r.email}`;
+            container.appendChild(div);
+        });
+
+    }
+        //Carrega a lista
+        listRecords();
+
+        //Atualiza a lista a cada 2 segundos
+        setInterval(listRecords, 2000);
+
 </script>
 
 </body>

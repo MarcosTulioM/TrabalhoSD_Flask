@@ -3,75 +3,64 @@
 import json
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
+from tinydb import Query, TinyDB
 
 
 app = Flask(__name__)
 CORS(app)  # libera requisições externas
 
 
+#Criando o banco de dados
+db = TinyDB('data.json')
+User = Query()
+
 # Carrega o index
 @app.route("/")
 def home_page():
     return render_template("index.html")
 
-#Busca registros
+#Busca registros por nome
 @app.route('/records', methods=['GET'])
 def query_records():
     name = request.args.get('name')
-    with open('data.txt', 'r') as f:
+    with open('data.json', 'r') as f:
         data = f.read()
         records = json.loads(data)
         for record in records:
-            if record['name'] == str(name):
-                return jsonify(record)
+            if record:
+                return jsonify(record[0])
         return jsonify({'error': 'data not found'})
 
 
 #Criar novo registro
 @app.route('/records', methods=['POST'])
 def create_record():
-    record = json.loads(request.data)
-    with open('data.txt', 'r') as f:
-        data = f.read()
-    if not data:
-        records = [record]
-    else:
-        records = json.loads(data)
-        records.append(record)
-    with open('data.txt', 'w') as f:
-        f.write(json.dumps(records, indent=2))
+    record = request.get_json()
+    db.insert(record)
     return jsonify(record)
 
 #Atualizar registro
 @app.route('/records', methods=['PUT'])
 def update_record():
-    record = json.loads(request.data)
-    new_records = []
-    with open('data.txt', 'r') as f:
-        data = f.read()
-        records = json.loads(data)
-    for r in records:
-        if r['name'] == record['name']:
-            r['email'] = record['email']
-        new_records.append(r)
-    with open('data.txt', 'w') as f:
-        f.write(json.dumps(new_records, indent=2))
-    return jsonify(record)
+    record = request.get_json()
+    updated = db.update({"email": record["email"]}, User.name == record["name"])
+    if updated:
+        return jsonify(record)
+    return jsonify({'error': 'data not found'})
 
 #Apagar registro
 @app.route('/records', methods=['DELETE'])
 def delete_record():
-    record = json.loads(request.data)
-    new_records = []
-    with open('data.txt', 'r') as f:
-        data = f.read()
-        records = json.loads(data)
-        for r in records:
-            if r['name'] == record['name']:
-                continue
-            new_records.append(r)
-    with open('data.txt', 'w') as f:
-        f.write(json.dumps(new_records, indent=2))
-    return jsonify(record)
+    record = request.get_json()
+    removed = db.remove(User.name == record["name"])
+    if removed:
+        return jsonify(record)
+    return jsonify({'error': 'data not found'})
 
-app.run(debug=True)
+# Listar todos os registros
+@app.route("/records/all", methods=["GET"])
+def list_records():
+    return jsonify(db.all())
+
+if __name__ == "__main__":
+    app.run(debug=True)
